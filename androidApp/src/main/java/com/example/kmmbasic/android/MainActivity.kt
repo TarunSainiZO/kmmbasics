@@ -15,7 +15,10 @@ import kotlinx.coroutines.*
 class MainActivity : AppCompatActivity() {
     private val greeting = Greeting()
     private val mainScope = MainScope()
-    private val ioScope = CoroutineScope(Dispatchers.IO)
+    private val exceptionHandler = CoroutineExceptionHandler { _, e ->
+        println("for learning ${e.localizedMessage}")
+    }
+    private val ioScope = CoroutineScope(Dispatchers.IO+exceptionHandler)
     private val name: TextView
         get() = findViewById(R.id.refferalName)
     private val date: TextView
@@ -36,22 +39,24 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         refresh()
         refreshPage.setOnClickListener {
-            refresh()
+//            refresh()
+            runCoroutine()
         }
     }
 
     private fun runCoroutine() {
-        ioScope.launch {
-            kotlin.runCatching {
-                MultiCoroutines().run(
-                    message = "second 5000 Thread",
-                    time = 5000,
-                    throwException = true
-                )
-            }.onFailure {
-                println("for learning ${it.stackTraceToString()}")
-            }
-        }
+
+//        ioScope.launch {
+//            kotlin.runCatching {
+//                MultiCoroutines().run(
+//                    message = "second 5000 Thread",
+//                    time = 5000,
+//                    throwException = true
+//                )
+//            }.onFailure {
+//                println("for learning ${it.stackTraceToString()}")
+//            }
+//        }
         ioScope.launch {
             kotlin.runCatching {
                 MultiCoroutines().run(message = "first 1000 Thread", time = 1000)
@@ -65,7 +70,11 @@ class MainActivity : AppCompatActivity() {
             }.onFailure {
                 println("for learning ${it.stackTraceToString()}")
             }
+        }
 
+        // Job get cancel --> above coroutine throw failed
+        ioScope.launch {
+            throw Exception("for learning manual exception")
         }
     }
 

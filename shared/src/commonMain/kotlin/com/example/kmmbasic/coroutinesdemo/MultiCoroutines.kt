@@ -11,5 +11,8 @@ class MultiCoroutines {
     suspend fun run(message: String, time: Long, throwException: Boolean = false) {
             delay(time)
             println("for learning $message")
+        if(throwException){
+            throw Exception(message)
+        }
     }
 }
