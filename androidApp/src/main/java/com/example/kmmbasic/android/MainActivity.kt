@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
     private val exceptionHandler = CoroutineExceptionHandler { _, e ->
         println("for learning ${e.localizedMessage}")
     }
-    private val ioScope = CoroutineScope(Dispatchers.IO+exceptionHandler)
+    private val ioScope = CoroutineScope(Dispatchers.IO + exceptionHandler)
     private val name: TextView
         get() = findViewById(R.id.refferalName)
     private val date: TextView
@@ -39,12 +39,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         refresh()
         refreshPage.setOnClickListener {
-//            refresh()
-            runCoroutine()
+            refresh()
         }
     }
 
-    private fun runCoroutine() {
+//    private fun runCoroutine() {
 
 //        ioScope.launch {
 //            kotlin.runCatching {
@@ -57,48 +56,53 @@ class MainActivity : AppCompatActivity() {
 //                println("for learning ${it.stackTraceToString()}")
 //            }
 //        }
-        ioScope.launch {
-            kotlin.runCatching {
-                MultiCoroutines().run(message = "first 1000 Thread", time = 1000)
-            }.onFailure {
-                println("for learning ${it.stackTraceToString()}")
-            }
-
-
-            kotlin.runCatching {
-                MultiCoroutines().run(message = "third 3000 Thread", time = 3000)
-            }.onFailure {
-                println("for learning ${it.stackTraceToString()}")
-            }
-        }
+//        ioScope.launch {
+//            kotlin.runCatching {
+//                MultiCoroutines().run(message = "first 1000 Thread", time = 1000)
+//            }.onFailure {
+//                println("for learning ${it.stackTraceToString()}")
+//            }
+//
+//
+//            kotlin.runCatching {
+//                MultiCoroutines().run(message = "third 3000 Thread", time = 3000)
+//            }.onFailure {
+//                println("for learning ${it.stackTraceToString()}")
+//            }
+//        }
 
         // Job get cancel --> above coroutine throw failed
-        ioScope.launch {
-            throw Exception("for learning manual exception")
-        }
-    }
+//        ioScope.launch {
+//            throw Exception("for learning manual exception")
+//        }
+//    }
 
     private fun refresh() {
         progressBar.visibility = View.VISIBLE
         refreshPage.visibility = View.GONE
         group.visibility = View.GONE
-        mainScope.launch {
+        ioScope.launch {
             kotlin.runCatching {
                 greeting.greeting()
             }.onSuccess {
-                progressBar.visibility = View.GONE
-                group.visibility = View.VISIBLE
-                name.text = it.refferalName
-                date.text = it.refferedDate
-                number.text = it.ticketId.toString()
-                refreshPage.visibility = View.VISIBLE
-                Glide.with(applicationContext).load(it.referralimageUrl).into(imageView)
+                mainScope.launch {
+                    progressBar.visibility = View.GONE
+                    group.visibility = View.VISIBLE
+                    name.text = it.refferalName
+                    date.text = it.refferedDate
+                    number.text = it.ticketId.toString()
+                    refreshPage.visibility = View.VISIBLE
+                    Glide.with(applicationContext).load(it.referralimageUrl).into(imageView)
+                }
+
             }.onFailure {
-                progressBar.visibility = View.GONE
-                refreshPage.visibility = View.VISIBLE
                 Log.d("MainActivity", it.stackTraceToString())
-                Toast.makeText(applicationContext, it.localizedMessage, Toast.LENGTH_LONG)
-                    .show()
+                mainScope.launch {
+                    progressBar.visibility = View.GONE
+                    refreshPage.visibility = View.VISIBLE
+                    Toast.makeText(applicationContext, it.localizedMessage, Toast.LENGTH_LONG)
+                        .show()
+                }
             }
         }
     }
